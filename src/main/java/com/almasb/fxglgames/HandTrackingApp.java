@@ -7,46 +7,106 @@ import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.physics.box2d.dynamics.BodyType;
 import com.almasb.fxgl.physics.box2d.dynamics.FixtureDef;
-import com.almasb.fxglgames.tracking.HandGestureEvent;
+import com.almasb.fxglgames.tracking.Hand;
+import com.almasb.fxglgames.tracking.HandGesture;
 import com.almasb.fxglgames.tracking.HandGestureService;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.almasb.fxgl.dsl.FXGL.*;
 
 /**
+ * TODO: this is only for 1-handed tracking.
+ * TODO: ask for user calibration?
+ *
  * @author Almas Baimagambetov (almaslvl@gmail.com)
  */
 public class HandTrackingApp extends GameApplication {
 
     private Optional<Entity> current = Optional.empty();
 
+    private GraphicsContext g;
+
+    private Text debugText;
+
+    private boolean isDrawing = false;
+    private Circle pointer;
+
+    private double oldX = -1;
+    private double oldY = -1;
+
     @Override
     protected void initSettings(GameSettings settings) {
         settings.setWidth(1280);
         settings.setHeight(720);
+        settings.setManualResizeEnabled(true);
         settings.addEngineService(HandGestureService.class);
     }
 
     @Override
     protected void initGame() {
+        pointer = new Circle(15, 15, 15, Color.RED);
+        pointer.setStroke(Color.YELLOW);
+
+        addUINode(pointer);
+
+        debugText = new Text("");
+        debugText.setFont(Font.font(22));
+
+        //addUINode(debugText, 50, 250);
+
         getGameScene().setBackgroundColor(Color.LIGHTGRAY);
 
         entityBuilder().buildScreenBoundsAndAttach(40);
 
         spawnNewEntity();
 
-        getService(HandGestureService.class).setOnGesture(event -> {
-            if (event.getEventType() == HandGestureEvent.SWIPE_LEFT) {
-                current.ifPresent(this::moveLeft);
-            } else if (event.getEventType() == HandGestureEvent.SWIPE_RIGHT) {
-                current.ifPresent(this::moveRight);
+        var canvas = new Canvas(getAppWidth(), getAppHeight());
+        g = canvas.getGraphicsContext2D();
+        g.setFill(Color.BLUE);
+        g.setStroke(Color.RED);
+        g.setLineWidth(6);
+
+        addUINode(canvas);
+
+        getService(HandGestureService.class).setRawDataHandler(hand -> {
+            var dist = hand.points().get(4).distance(hand.points().get(8));
+
+            debugText.setText(String.format("distance: %.3f", dist));
+            //drawHand(hand);
+
+            var indexFingerTip = hand.points().get(8);
+
+            pointer.setTranslateX((1 - indexFingerTip.getX()) * 1280);
+            pointer.setTranslateY(indexFingerTip.getY() * 720);
+        });
+
+        getService(HandGestureService.class).currentGestureProperty().addListener((o, old, gesture) -> {
+            if (gesture == HandGesture.THUMB_INDEX_PINCH) {
+                isDrawing = true;
+            } else {
+                isDrawing = false;
             }
         });
+
+//        getService(HandGestureService.class).setOnGesture(event -> {
+//            if (event.getEventType() == HandGestureEvent.SWIPE_LEFT) {
+//                current.ifPresent(this::moveLeft);
+//            } else if (event.getEventType() == HandGestureEvent.SWIPE_RIGHT) {
+//                current.ifPresent(this::moveRight);
+//            }
+//        });
     }
 
     @Override
@@ -55,9 +115,40 @@ public class HandTrackingApp extends GameApplication {
         text.textProperty().bind(
                 new SimpleStringProperty("Wave your hand until tracking is calibrated\n Hand tracking is ready: ")
                         .concat(getService(HandGestureService.class).isReadyProperty())
+                        .concat("\n")
+                        .concat("Current gesture: ")
+                        .concat(getService(HandGestureService.class).currentGestureProperty())
         );
 
-        addUINode(text, 100, 100);
+        //addUINode(text, 50, 50);
+    }
+
+    private void drawHand(Hand hand) {
+        g.clearRect(0, 0, getAppWidth(), getAppHeight());
+
+        List<Point3D> points = hand.points();
+        for (int i = 0; i < points.size(); i++) {
+            Point3D p = points.get(i);
+            var x = p.getX() * 1280;
+            var y = p.getY() * 720;
+
+            g.fillOval(x, y, 15, 15);
+
+            g.fillText(Integer.toString(i), x, y);
+        }
+
+        drawLine(hand.points(), 0, 5);
+        drawLine(hand.points(), 5, 9);
+        drawLine(hand.points(), 9, 13);
+        drawLine(hand.points(), 13, 17);
+        drawLine(hand.points(), 17, 0);
+    }
+
+    private void drawLine(List<Point3D> points, int index0, int index1) {
+        g.strokeLine(
+                points.get(index0).getX() * 1280, points.get(index0).getY() * 720,
+                points.get(index1).getX() * 1280, points.get(index1).getY() * 720
+        );
     }
 
     private void moveLeft(Entity e) {
@@ -86,11 +177,29 @@ public class HandTrackingApp extends GameApplication {
         var e = entityBuilder()
                 .at(getAppCenter())
                 .bbox(BoundingShape.circle(32))
-                .view(texture("ball.png", 64, 64))
+                //.view(texture("ball.png", 64, 64))
                 .with(physics)
                 .buildAndAttach();
 
         current = Optional.of(e);
+    }
+
+    @Override
+    protected void onUpdate(double tpf) {
+        if (!isDrawing) {
+            oldX = -1;
+            oldY = -1;
+            return;
+        }
+
+        //g.fillOval(pointer.getTranslateX(), pointer.getTranslateY(), 10, 10);
+
+        if (oldX != -1 && oldY != -1) {
+            g.strokeLine(oldX, oldY, pointer.getTranslateX(), pointer.getTranslateY());
+        }
+
+        oldX = pointer.getTranslateX();
+        oldY = pointer.getTranslateY();
     }
 
     public static void main(String[] args) {
