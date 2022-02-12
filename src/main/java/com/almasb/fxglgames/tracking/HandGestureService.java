@@ -3,9 +3,9 @@ package com.almasb.fxglgames.tracking;
 import com.almasb.fxgl.core.EngineService;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.logging.Logger;
-import com.almasb.fxglgames.tracking.gestures.FistGestureEvaluator;
-import com.almasb.fxglgames.tracking.gestures.ThumbIndexPinchGestureEvaluator;
+import com.almasb.fxglgames.tracking.gestures.GeometricGestureEvaluator;
 import com.almasb.fxglgames.tracking.impl.JSHandTrackingDriver;
+import com.almasb.fxglgames.tracking.impl.SimpleHandMetadataAnalyser;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -15,15 +15,15 @@ import javafx.util.Duration;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
-import static com.almasb.fxglgames.tracking.HandGesture.*;
 import static com.almasb.fxglgames.tracking.HandGesture.NO_HAND;
+import static com.almasb.fxglgames.tracking.HandGesture.UNKNOWN;
 
 /**
  * @author Almas Baimagambetov (almaslvl@gmail.com)
@@ -34,14 +34,15 @@ public final class HandGestureService extends EngineService {
 
     private BooleanProperty isReadyProperty = new SimpleBooleanProperty(false);
 
-    private Map<HandGesture, GestureEvaluator> evaluators = new LinkedHashMap<>();
+    // TODO: allow setting
+    private GestureEvaluator gestureEvaluator = new GeometricGestureEvaluator();
 
     private ObjectProperty<HandGesture> currentGesture = new SimpleObjectProperty<>(NO_HAND);
 
     private BlockingQueue<Hand> dataQueue = new ArrayBlockingQueue<>(1000);
     private List<Hand> evalQueue = new ArrayList<>(1000);
 
-    private Consumer<Hand> rawDataHandler = data -> {};
+    private BiConsumer<Hand, HandMetadataAnalyser> rawDataHandler = (data, analyser) -> {};
 
     private EventHandler<HandGestureEvent> handler = event -> {};
     private HandTrackingDriver driver;
@@ -54,9 +55,6 @@ public final class HandGestureService extends EngineService {
 
     @Override
     public void onInit() {
-        // populate evaluators
-        evaluators.put(THUMB_INDEX_PINCH, new ThumbIndexPinchGestureEvaluator());
-
         driver = new JSHandTrackingDriver(this::onHandData);
 
         // starts the driver in a background thread
@@ -95,11 +93,11 @@ public final class HandGestureService extends EngineService {
         return currentGesture;
     }
 
-    public void setRawDataHandler(Consumer<Hand> rawDataHandler) {
+    public void setRawDataHandler(BiConsumer<Hand, HandMetadataAnalyser> rawDataHandler) {
         this.rawDataHandler = rawDataHandler;
     }
 
-    public Consumer<Hand> getRawDataHandler() {
+    public BiConsumer<Hand, HandMetadataAnalyser> getRawDataHandler() {
         return rawDataHandler;
     }
 
@@ -121,11 +119,13 @@ public final class HandGestureService extends EngineService {
         try {
             var item = dataQueue.take();
 
-            evaluateGesture(item);
+            var analyser = new SimpleHandMetadataAnalyser();
+
+            evaluateGesture(item, analyser);
 
             evalQueue.add(item);
 
-            rawDataHandler.accept(item);
+            rawDataHandler.accept(item, analyser);
         } catch (InterruptedException e) {
             log.warning("Cannot take item from queue", e);
         }
@@ -134,14 +134,17 @@ public final class HandGestureService extends EngineService {
     }
 
     // this is the (static) gesture mapping algorithm, which is currently very basic and requires more thought
-    private void evaluateGesture(Hand hand) {
+    private void evaluateGesture(Hand hand, HandMetadataAnalyser analyser) {
+        var result = gestureEvaluator.evaluate(hand, analyser);
+
         currentGesture.set(
-                evaluators
-                .keySet()
-                .stream()
-                .filter(gesture -> evaluators.get(gesture).evaluate(hand))
-                .findFirst()
-                .orElse(UNKNOWN)
+            result.output()
+                    .entrySet()
+                    .stream()
+                    .max(Comparator.comparingDouble(Map.Entry::getValue))
+                    // TODO: threshold ...
+                    .map(entry -> entry.getValue() > 0.02 ? entry.getKey() : UNKNOWN)
+                    .get()
         );
     }
 

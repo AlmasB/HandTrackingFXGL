@@ -80,11 +80,11 @@ public class HandTrackingApp extends GameApplication {
 
         addUINode(canvas);
 
-        getService(HandGestureService.class).setRawDataHandler(hand -> {
+        getService(HandGestureService.class).setRawDataHandler((hand, analyser) -> {
             var dist = hand.points().get(4).distance(hand.points().get(8));
 
             debugText.setText(String.format("distance: %.3f", dist));
-            //drawHand(hand);
+            drawHand(hand);
 
             var indexFingerTip = hand.points().get(8);
 
@@ -93,11 +93,11 @@ public class HandTrackingApp extends GameApplication {
         });
 
         getService(HandGestureService.class).currentGestureProperty().addListener((o, old, gesture) -> {
-            if (gesture == HandGesture.THUMB_INDEX_PINCH) {
-                isDrawing = true;
-            } else {
-                isDrawing = false;
-            }
+//            if (gesture == HandGesture.THUMB_INDEX_PINCH) {
+//                isDrawing = true;
+//            } else {
+//                isDrawing = false;
+//            }
         });
 
 //        getService(HandGestureService.class).setOnGesture(event -> {
@@ -120,7 +120,7 @@ public class HandTrackingApp extends GameApplication {
                         .concat(getService(HandGestureService.class).currentGestureProperty())
         );
 
-        //addUINode(text, 50, 50);
+        addUINode(text, 50, 50);
     }
 
     private void drawHand(Hand hand) {
@@ -129,7 +129,7 @@ public class HandTrackingApp extends GameApplication {
         List<Point3D> points = hand.points();
         for (int i = 0; i < points.size(); i++) {
             Point3D p = points.get(i);
-            var x = p.getX() * 1280;
+            var x = (1 - p.getX()) * 1280;
             var y = p.getY() * 720;
 
             g.fillOval(x, y, 15, 15);
@@ -146,8 +146,8 @@ public class HandTrackingApp extends GameApplication {
 
     private void drawLine(List<Point3D> points, int index0, int index1) {
         g.strokeLine(
-                points.get(index0).getX() * 1280, points.get(index0).getY() * 720,
-                points.get(index1).getX() * 1280, points.get(index1).getY() * 720
+                (1 - points.get(index0).getX()) * 1280, points.get(index0).getY() * 720,
+                (1 - points.get(index1).getX()) * 1280, points.get(index1).getY() * 720
         );
     }
 

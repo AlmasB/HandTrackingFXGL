@@ -14,7 +14,11 @@ public record Hand(
         List<Point3D> points
 ) {
 
-    Point3D average() {
+    public Point3D getPoint(HandLandmark landmark) {
+        return points.get(landmark.ordinal());
+    }
+
+    public Point3D average() {
         return points
                 .stream()
                 .reduce(Point3D.ZERO, Point3D::add)

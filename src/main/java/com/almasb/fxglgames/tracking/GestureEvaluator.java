@@ -5,8 +5,5 @@ package com.almasb.fxglgames.tracking;
  */
 public interface GestureEvaluator {
 
-    /**
-     * @return true if the given [hand] is evaluated to be a match for this gesture
-     */
-    boolean evaluate(Hand hand);
+    GestureEvaluationResult evaluate(Hand hand, HandMetadataAnalyser analyser);
 }
