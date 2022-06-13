@@ -7,6 +7,7 @@ import com.almasb.fxgl.physics.BoundingShape;
 import com.almasb.fxgl.physics.PhysicsComponent;
 import com.almasb.fxgl.physics.box2d.dynamics.BodyType;
 import com.almasb.fxgl.physics.box2d.dynamics.FixtureDef;
+import com.almasb.fxglgames.socket.PythonSocketService;
 import com.almasb.fxglgames.tracking.Hand;
 import com.almasb.fxglgames.tracking.HandGesture;
 import com.almasb.fxglgames.tracking.HandGestureService;
@@ -52,6 +53,7 @@ public class HandTrackingApp extends GameApplication {
         settings.setHeight(720);
         settings.setManualResizeEnabled(true);
         settings.addEngineService(HandGestureService.class);
+        settings.addEngineService(PythonSocketService.class);
     }
 
     @Override
@@ -91,6 +93,8 @@ public class HandTrackingApp extends GameApplication {
             pointer.setTranslateX((1 - indexFingerTip.getX()) * 1280);
             pointer.setTranslateY(indexFingerTip.getY() * 720);
         });
+
+
 
         getService(HandGestureService.class).currentGestureProperty().addListener((o, old, gesture) -> {
 //            if (gesture == HandGesture.THUMB_INDEX_PINCH) {
