@@ -14,22 +14,25 @@ public class PythonSocketServer extends WebSocketServer {
     private static final Logger log = Logger.get(PythonSocketServer.class);
 
     private Consumer<String> messageHandler;
+    private Runnable connectHandler;
 
-    public PythonSocketServer(InetSocketAddress address, Consumer<String> messageHandler) {
+    public PythonSocketServer(InetSocketAddress address, Consumer<String> messageHandler, Runnable connectHandler) {
         super(address);
         this.messageHandler = messageHandler;
+        this.connectHandler = connectHandler;
     }
 
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
         log.info("new connection to " + webSocket.getRemoteSocketAddress());
-
         webSocket.send("Connected to Gesture Server");
+        connectHandler.run();
     }
 
     @Override
     public void onClose(WebSocket webSocket, int i, String s, boolean b) {
         //log.info("connection closed to " + webSocket.getRemoteSocketAddress());
+        log.info("Client disconnected");
     }
 
     @Override

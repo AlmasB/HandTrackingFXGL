@@ -7,6 +7,7 @@ import com.almasb.fxgl.net.ServerConfig;
 import com.almasb.fxgl.net.tcp.TCPServer;
 import com.almasb.fxglgames.tracking.HandGestureService;
 import javafx.util.Duration;
+import org.java_websocket.WebSocket;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -18,6 +19,7 @@ public class PythonSocketService extends EngineService {
 
     private static final Logger log = Logger.get(PythonSocketService.class);
     private Consumer<String> messageHandler;
+    private Consumer<WebSocket> connectHandler;
 
     private PythonSocketServer server;
 
@@ -29,9 +31,22 @@ public class PythonSocketService extends EngineService {
 
         server = new PythonSocketServer(
                 new InetSocketAddress("localhost", 8750),
-                this::onMessage);
+                this::onMessage,
+                this::onConnect);
 
         server.start();
+    }
+
+    public void onConnect() {
+        getGameTimer().runAtInterval(() -> {
+            try {
+                String currentGesture = String.valueOf(getService(HandGestureService.class).currentGestureProperty().get());
+                server.broadcast(currentGesture);
+                log.info("Gesture Sent");
+            } catch (Exception e) {
+                log.warning("Failed to broadcast gesture.", e);
+            }
+        }, Duration.seconds(3));
     }
 
     @Override
@@ -41,8 +56,21 @@ public class PythonSocketService extends EngineService {
         } catch (InterruptedException e) {
             log.warning("Failed to stop server.", e);
         }
-
     }
+
+    @Override
+    public void onUpdate(double tpf) {
+//        getGameTimer().runAtInterval(() -> {
+//            try {
+//                String currentGesture = getService(HandGestureService.class).currentGestureProperty().toString();
+//                server.broadcast(currentGesture);
+//                log.info("Gesture Sent");
+//            } catch (Exception e) {
+//                log.warning("Failed to broadcast gesture.", e);
+//            }
+//        }, Duration.seconds(3));
+    }
+
 
     private void onMessage(String message) {
         log.info("Message received: " + message);
