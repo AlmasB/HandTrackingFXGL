@@ -2,19 +2,26 @@
 
 import requests
 import json
+import sys
 
 # Input from Java must be named "input"
 
 
 def get_status(colour):
     parameter_1 = colour
-    sql_string = "http://192.168.43.65:5000/{p1}".format(p1=parameter_1)
+    ip = sys.argv[1]
+    port = sys.argv[2]
+    sql_string = "http://{ip}:{port}/{p1}".format(
+        ip=ip, port=port, p1=parameter_1)
     return requests.get(sql_string).content
 
 
 def set_status(colour):
     parameter_1 = colour
-    sql_string = "http://192.168.43.65:5000/colour/{p1}".format(p1=parameter_1)
+    ip = sys.argv[1]
+    port = sys.argv[2]
+    sql_string = "http://{ip}:{port}/{p1}".format(
+        ip=ip, port=port, p1=parameter_1)
     return requests.get(sql_string).content
 
 
