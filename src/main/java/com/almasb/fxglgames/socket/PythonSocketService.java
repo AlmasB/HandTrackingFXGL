@@ -38,6 +38,7 @@ public class PythonSocketService extends EngineService {
     }
 
     public void onConnect() {
+        // Broadcast on delay
         getGameTimer().runAtInterval(() -> {
             try {
                 String currentGesture = String.valueOf(getService(HandGestureService.class).currentGestureProperty().get());
@@ -60,7 +61,7 @@ public class PythonSocketService extends EngineService {
 
     @Override
     public void onUpdate(double tpf) {
-//        getGameTimer().runAtInterval(() -> {
+        // Broadcast on frame
 //            try {
 //                String currentGesture = getService(HandGestureService.class).currentGestureProperty().toString();
 //                server.broadcast(currentGesture);
@@ -68,22 +69,15 @@ public class PythonSocketService extends EngineService {
 //            } catch (Exception e) {
 //                log.warning("Failed to broadcast gesture.", e);
 //            }
-//        }, Duration.seconds(3));
     }
 
 
     private void onMessage(String message) {
+        // Broadcast in response to message
         log.info("Message received: " + message);
-        if(Objects.equals(message, "Hello")) {
-            server.broadcast("Hello from Gesture Server");
-        } else {
-            server.broadcast(message);
-            String currentGesture = getService(HandGestureService.class).currentGestureProperty().toString();
-            server.broadcast(currentGesture);
-        }
-    }
-
-    private void onClientReady(String s) {
+        String currentGesture = getService(HandGestureService.class).currentGestureProperty().toString();
+        server.broadcast(currentGesture);
+        log.info("Gesture Sent");
     }
 
 
