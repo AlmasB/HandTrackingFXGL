@@ -7,6 +7,8 @@ import websockets
 
 import APICalling
 
+import sys
+
 
 async def hello():
 
@@ -16,6 +18,9 @@ async def hello():
 
         greeting = await websocket.recv()
         print(f"<<< {greeting}")
+
+        ip = sys.argv[1]
+        port = sys.argv[2]
 
         while True:
 
@@ -29,7 +34,7 @@ async def hello():
 
             # response must be sent to pi
 
-            APICalling.send_req(response)
+            APICalling.send_req(ip, port, response)
 
             # receive response from pi
 
