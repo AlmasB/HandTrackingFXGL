@@ -35,7 +35,7 @@ final class MediaPipeServer extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        log.info("connection from " + conn.getRemoteSocketAddress() + " closed with code=" + code);
+        log.info("connection from mediapipe client closed with code=" + code);
     }
 
     @Override
@@ -45,7 +45,12 @@ final class MediaPipeServer extends WebSocketServer {
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        log.warning("an error occurred on connection " + conn.getRemoteSocketAddress(), ex);
+        try {
+            log.warning("an error occurred on connection " + conn.getRemoteSocketAddress(), ex);
+        } catch (Exception e) {
+            log.warning("Socket Error: ", ex);
+            log.warning("an error occurred on mediapipe server", e);
+        }
     }
 
     @Override
