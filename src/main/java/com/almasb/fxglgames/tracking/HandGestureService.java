@@ -6,10 +6,7 @@ import com.almasb.fxgl.logging.Logger;
 import com.almasb.fxglgames.tracking.gestures.GeometricGestureEvaluator;
 import com.almasb.fxglgames.tracking.impl.JSHandTrackingDriver;
 import com.almasb.fxglgames.tracking.impl.SimpleHandMetadataAnalyser;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.event.EventHandler;
 import javafx.util.Duration;
 
@@ -38,6 +35,7 @@ public final class HandGestureService extends EngineService {
     private GestureEvaluator gestureEvaluator = new GeometricGestureEvaluator();
 
     private ObjectProperty<HandGesture> currentGesture = new SimpleObjectProperty<>(NO_HAND);
+    public boolean ringFingerDown = false;
 
     private BlockingQueue<Hand> dataQueue = new ArrayBlockingQueue<>(1000);
     private List<Hand> evalQueue = new ArrayList<>(1000);
@@ -52,6 +50,9 @@ public final class HandGestureService extends EngineService {
     private int minQueueSize = 10;
 
     private int noHandCounter = 0;
+
+    public double ringMCPY;
+    public double ringTipY;
 
     @Override
     public void onInit() {
@@ -114,6 +115,14 @@ public final class HandGestureService extends EngineService {
             return;
         }
 
+        try {
+            ringTipY = dataQueue.take().getPoint(HandLandmark.RING_FINGER_TIP).getX();
+            ringMCPY = dataQueue.take().getPoint(HandLandmark.RING_FINGER_MCP).getX();
+            log.info(String.valueOf(dataQueue.take().getPoint(HandLandmark.RING_FINGER_TIP).getX()));
+        } catch (InterruptedException e)
+        {
+            log.warning("Could not take data");
+        }
         noHandCounter = 0;
 
         try {
@@ -126,11 +135,16 @@ public final class HandGestureService extends EngineService {
             evalQueue.add(item);
 
             rawDataHandler.accept(item, analyser);
+
+            ringFingerDown = GeometricGestureEvaluator.isFingerDown(item, HandLandmark.RING_FINGER_TIP);
+
         } catch (InterruptedException e) {
             log.warning("Cannot take item from queue", e);
         }
 
         evaluateMovement();
+
+
     }
 
     // this is the (static) gesture mapping algorithm, which is currently very basic and requires more thought

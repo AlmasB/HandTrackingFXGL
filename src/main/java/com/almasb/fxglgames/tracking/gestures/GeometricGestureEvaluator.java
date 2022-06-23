@@ -25,6 +25,11 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
         evaluators.put(THUMB_MIDDLE_FINGER_PINCH, this::evalThumbMiddlePinch);
     }
 
+    public static boolean isFingerDown(Hand hand, HandLandmark landmark)
+    {
+        return hand.getPoint(landmark).getY() > hand.getPoint(RING_FINGER_MCP).getY();
+    }
+
     @Override
     public GestureEvaluationResult evaluate(Hand hand, HandMetadataAnalyser analyser) {
         var metadata = analyser.analyse(hand);
