@@ -11,6 +11,7 @@ import com.almasb.fxglgames.socket.PythonSocketService;
 import com.almasb.fxglgames.tracking.Hand;
 import com.almasb.fxglgames.tracking.HandGesture;
 import com.almasb.fxglgames.tracking.HandGestureService;
+import com.almasb.fxglgames.tracking.gestures.GeometricGestureEvaluator;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
@@ -47,6 +48,9 @@ public class HandTrackingApp extends GameApplication {
     private double oldX = -1;
     private double oldY = -1;
 
+    private Text ringMCP;
+    private Text ringTip;
+
     @Override
     protected void initSettings(GameSettings settings) {
         settings.setWidth(1280);
@@ -81,6 +85,7 @@ public class HandTrackingApp extends GameApplication {
         g.setLineWidth(6);
 
         addUINode(canvas);
+
 
         getService(HandGestureService.class).setRawDataHandler((hand, analyser) -> {
             var dist = hand.points().get(4).distance(hand.points().get(8));
@@ -125,6 +130,20 @@ public class HandTrackingApp extends GameApplication {
         );
 
         addUINode(text, 50, 50);
+
+        var ringText = getUIFactoryService().newText("", Color.WHITE, 22.0);
+        text.textProperty().bind(
+                new SimpleStringProperty("Ring Finger is Down: ")
+                        .concat(getService(HandGestureService.class).ringFingerDown)
+
+        );
+
+        ringMCP = new Text();
+        addUINode(ringMCP, 500, 800);
+        ringTip = new Text();
+        addUINode( ringTip, 500, 500);
+
+        addUINode(ringText, 500, 300);
     }
 
     private void drawHand(Hand hand) {
@@ -146,6 +165,9 @@ public class HandTrackingApp extends GameApplication {
         drawLine(hand.points(), 9, 13);
         drawLine(hand.points(), 13, 17);
         drawLine(hand.points(), 17, 0);
+
+        ringMCP.setText("Ring MCP: " + String.valueOf(getService(HandGestureService.class).ringMCPY));
+        ringTip.setText("Ring Tip: " + String.valueOf(getService(HandGestureService.class).ringTipY));
     }
 
     private void drawLine(List<Point3D> points, int index0, int index1) {
