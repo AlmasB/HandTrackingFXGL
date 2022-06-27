@@ -1,5 +1,6 @@
 package com.almasb.fxglgames.tracking.gestures;
 
+import com.almasb.fxgl.logging.Logger;
 import com.almasb.fxglgames.tracking.*;
 import javafx.geometry.Point3D;
 import javafx.util.Pair;
@@ -16,6 +17,7 @@ import static com.almasb.fxglgames.tracking.HandLandmark.*;
  */
 public class GeometricGestureEvaluator implements GestureEvaluator {
 
+    private static final Logger log = Logger.get(GeometricGestureEvaluator.class);
     private EnumMap<HandGesture, BiFunction<Hand, HandMetadata, Double>> evaluators = new EnumMap<>(HandGesture.class);
 
     public GeometricGestureEvaluator() {
@@ -33,7 +35,7 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
 
     public static HandOrientation getOrientation(Hand hand)
     {
-        // These are both functional, I have yet to implement finding the best fit orientation
+        // Commented out code is functional but only works on left-right or up-down
 
 //        if(hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(RING_FINGER_MCP)).getY() > hand.getPoint(WRIST).getY())
 //        {
@@ -41,11 +43,27 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
 //        }
 //        return HandOrientation.UP;
 
-        if(hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(RING_FINGER_MCP)).getX() > hand.getPoint(WRIST).getX())
+//        if(hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(RING_FINGER_MCP)).getX() > hand.getPoint(WRIST).getX())
+//        {
+//            return HandOrientation.LEFT;
+//        }
+//        return HandOrientation.RIGHT;
+
+        // ISSUE: LEFT-RIGHT ONLY WORKS WITH PALM FACING FORWARDS
+        Point3D leftPoint = hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(WRIST));
+        Point3D rightPoint = hand.getPoint(PINKY_MCP).midpoint(hand.getPoint(WRIST));
+        Point3D upperPoint = hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(PINKY_MCP));
+        Point3D lowerPoint = hand.getPoint(WRIST);
+        if(leftPoint.getY() < rightPoint.getY() && leftPoint.getY() < upperPoint.getY() && leftPoint.getY() < lowerPoint.getY())
         {
+            return HandOrientation.RIGHT;
+        } else if (rightPoint.getY() < upperPoint.getY() && rightPoint.getY() < lowerPoint.getY()) {
             return HandOrientation.LEFT;
+        } else if (upperPoint.getY() < lowerPoint.getY()) {
+            return HandOrientation.UP;
+        } else {
+            return HandOrientation.DOWN;
         }
-        return HandOrientation.RIGHT;
     }
 
 
