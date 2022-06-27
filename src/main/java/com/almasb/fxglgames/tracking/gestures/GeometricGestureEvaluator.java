@@ -33,6 +33,11 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
         return hand.getPoint(landmark).getY() > hand.getPoint(RING_FINGER_MCP).getY();
     }
 
+    public static boolean getPalmFacingFowards(Hand hand)
+    {
+        return !(hand.getPoint(THUMB_TIP).midpoint(hand.getPoint(THUMB_CMC)).getX() < hand.getPoint(MIDDLE_FINGER_MCP).getX());
+    }
+
     public static HandOrientation getOrientation(Hand hand)
     {
         // Commented out code is functional but only works on left-right or up-down
@@ -49,16 +54,27 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
 //        }
 //        return HandOrientation.RIGHT;
 
+        boolean palmForwards = getPalmFacingFowards(hand);
         // ISSUE: LEFT-RIGHT ONLY WORKS WITH PALM FACING FORWARDS
+        // Creates 4 Points at the Midpoints of a box around the palm.
+        // Highest point is used to determine current direction.
         Point3D leftPoint = hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(WRIST));
         Point3D rightPoint = hand.getPoint(PINKY_MCP).midpoint(hand.getPoint(WRIST));
         Point3D upperPoint = hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(PINKY_MCP));
         Point3D lowerPoint = hand.getPoint(WRIST);
         if(leftPoint.getY() < rightPoint.getY() && leftPoint.getY() < upperPoint.getY() && leftPoint.getY() < lowerPoint.getY())
         {
-            return HandOrientation.RIGHT;
+//            if(palmForwards) {
+                return HandOrientation.RIGHT;
+//            } else {
+//                return HandOrientation.LEFT;
+//            }
         } else if (rightPoint.getY() < upperPoint.getY() && rightPoint.getY() < lowerPoint.getY()) {
-            return HandOrientation.LEFT;
+//            if(palmForwards) {
+                return HandOrientation.LEFT;
+//            } else {
+//                return HandOrientation.RIGHT;
+//            }
         } else if (upperPoint.getY() < lowerPoint.getY()) {
             return HandOrientation.UP;
         } else {
