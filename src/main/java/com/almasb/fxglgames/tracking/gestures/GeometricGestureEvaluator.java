@@ -1,6 +1,7 @@
 package com.almasb.fxglgames.tracking.gestures;
 
 import com.almasb.fxglgames.tracking.*;
+import javafx.geometry.Point3D;
 import javafx.util.Pair;
 
 import java.util.EnumMap;
@@ -29,6 +30,25 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
     {
         return hand.getPoint(landmark).getY() > hand.getPoint(RING_FINGER_MCP).getY();
     }
+
+    public static HandOrientation getOrientation(Hand hand)
+    {
+        // These are both functional, I have yet to implement finding the best fit orientation
+
+//        if(hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(RING_FINGER_MCP)).getY() > hand.getPoint(WRIST).getY())
+//        {
+//            return HandOrientation.DOWN;
+//        }
+//        return HandOrientation.UP;
+
+        if(hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(RING_FINGER_MCP)).getX() > hand.getPoint(WRIST).getX())
+        {
+            return HandOrientation.LEFT;
+        }
+        return HandOrientation.RIGHT;
+    }
+
+
 
     @Override
     public GestureEvaluationResult evaluate(Hand hand, HandMetadataAnalyser analyser) {

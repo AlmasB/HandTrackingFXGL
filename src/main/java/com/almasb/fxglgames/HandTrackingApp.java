@@ -138,6 +138,14 @@ public class HandTrackingApp extends GameApplication {
 
         );
 
+        var orientationText = getUIFactoryService().newText("", Color.BLUE, 22.0);
+        orientationText.textProperty().bind(
+                new SimpleStringProperty("Hand Orientation: ")
+                        .concat(getService(HandGestureService.class).currentOrientationProperty())
+        );
+
+        addUINode(orientationText, 150, 150);
+
         ringMCP = new Text();
         addUINode(ringMCP, 500, 800);
         ringTip = new Text();
