@@ -51,6 +51,8 @@ public class HandTrackingApp extends GameApplication {
     private Text ringMCP;
     private Text ringTip;
 
+    private Text thumbCurledText;
+
     @Override
     protected void initSettings(GameSettings settings) {
         settings.setWidth(1280);
@@ -131,27 +133,32 @@ public class HandTrackingApp extends GameApplication {
 
         addUINode(text, 50, 50);
 
-        var ringText = getUIFactoryService().newText("", Color.WHITE, 22.0);
-        text.textProperty().bind(
-                new SimpleStringProperty("Ring Finger is Down: ")
-                        .concat(getService(HandGestureService.class).ringFingerDown)
+//        var indexText = getUIFactoryService().newText("", Color.WHITE, 22.0);
+//        text.textProperty().bind(
+//                new SimpleStringProperty("Index Finger is Down: ")
+//                        .concat(getService(HandGestureService.class).indexFingerDownProperty())
+//
+//        );
 
-        );
+//        var orientationText = getUIFactoryService().newText("", Color.BLUE, 22.0);
+//        orientationText.textProperty().bind(
+//                new SimpleStringProperty("Hand Orientation: ")
+//                        .concat(getService(HandGestureService.class).currentOrientationProperty())
+//        );
+//
+//        addUINode(orientationText, 150, 150);
+//
+//        ringMCP = new Text();
+//        addUINode(ringMCP, 500, 800);
+//        ringTip = new Text();
+//        addUINode( ringTip, 500, 500);
+//
+//        addUINode(indexText, 500, 300);
 
-        var orientationText = getUIFactoryService().newText("", Color.BLUE, 22.0);
-        orientationText.textProperty().bind(
-                new SimpleStringProperty("Hand Orientation: ")
-                        .concat(getService(HandGestureService.class).currentOrientationProperty())
-        );
+        thumbCurledText = new Text();
+        addUINode(thumbCurledText, 500, 500);
 
-        addUINode(orientationText, 150, 150);
 
-        ringMCP = new Text();
-        addUINode(ringMCP, 500, 800);
-        ringTip = new Text();
-        addUINode( ringTip, 500, 500);
-
-        addUINode(ringText, 500, 300);
     }
 
     private void drawHand(Hand hand) {
@@ -174,8 +181,9 @@ public class HandTrackingApp extends GameApplication {
         drawLine(hand.points(), 13, 17);
         drawLine(hand.points(), 17, 0);
 
-        ringMCP.setText("Ring MCP: " + String.valueOf(getService(HandGestureService.class).ringMCPY));
-        ringTip.setText("Ring Tip: " + String.valueOf(getService(HandGestureService.class).ringTipY));
+//        ringMCP.setText("Ring MCP: " + String.valueOf(getService(HandGestureService.class).ringMCPY));
+//        ringTip.setText("Ring Tip: " + String.valueOf(getService(HandGestureService.class).ringTipY));
+        thumbCurledText.setText("Thumb Curled: " + String.valueOf(getService(HandGestureService.class).getThumbCurled()));
     }
 
     private void drawLine(List<Point3D> points, int index0, int index1) {

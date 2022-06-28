@@ -38,7 +38,9 @@ public final class HandGestureService extends EngineService {
 
     private ObjectProperty<HandOrientation> currentOrientation = new SimpleObjectProperty<>(HandOrientation.UP);
 
-    public boolean ringFingerDown = false;
+    public BooleanProperty indexFingerDown = new SimpleBooleanProperty(false);
+
+    public BooleanProperty thumbCurled = new SimpleBooleanProperty(false);
 
     private BlockingQueue<Hand> dataQueue = new ArrayBlockingQueue<>(1000);
     private List<Hand> evalQueue = new ArrayList<>(1000);
@@ -97,6 +99,12 @@ public final class HandGestureService extends EngineService {
         return currentGesture;
     }
 
+    public BooleanProperty getThumbCurled() { return thumbCurled; }
+
+    public BooleanProperty indexFingerDownProperty() {
+        return indexFingerDown;
+    }
+
     public HandOrientation getCurrentOrientation() {return currentOrientation.get();}
 
     public ObjectProperty<HandOrientation> currentOrientationProperty(){
@@ -137,12 +145,14 @@ public final class HandGestureService extends EngineService {
 
             rawDataHandler.accept(item, analyser);
 
-            ringFingerDown = GeometricGestureEvaluator.isFingerDown(item, HandLandmark.RING_FINGER_TIP);
-
             currentOrientation.set(GeometricGestureEvaluator.getOrientation(item));
 
             ringTipY = item.getPoint(HandLandmark.RING_FINGER_TIP).getY();
             ringMCPY = item.getPoint(HandLandmark.RING_FINGER_MCP).getY();
+
+            indexFingerDown.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.INDEX_FINGER_TIP));
+
+            thumbCurled.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.THUMB_TIP));
 
         } catch (InterruptedException e) {
             log.warning("Cannot take item from queue", e);
