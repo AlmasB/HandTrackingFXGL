@@ -35,7 +35,12 @@ public final class HandGestureService extends EngineService {
     private GestureEvaluator gestureEvaluator = new GeometricGestureEvaluator();
 
     private ObjectProperty<HandGesture> currentGesture = new SimpleObjectProperty<>(NO_HAND);
-    public boolean ringFingerDown = false;
+
+    private ObjectProperty<HandOrientation> currentOrientation = new SimpleObjectProperty<>(HandOrientation.UP);
+
+    public BooleanProperty indexFingerDown = new SimpleBooleanProperty(false);
+
+    public BooleanProperty thumbCurled = new SimpleBooleanProperty(false);
 
     private BlockingQueue<Hand> dataQueue = new ArrayBlockingQueue<>(1000);
     private List<Hand> evalQueue = new ArrayList<>(1000);
@@ -94,6 +99,18 @@ public final class HandGestureService extends EngineService {
         return currentGesture;
     }
 
+    public BooleanProperty getThumbCurled() { return thumbCurled; }
+
+    public BooleanProperty indexFingerDownProperty() {
+        return indexFingerDown;
+    }
+
+    public HandOrientation getCurrentOrientation() {return currentOrientation.get();}
+
+    public ObjectProperty<HandOrientation> currentOrientationProperty(){
+        return currentOrientation;
+    }
+
     public void setRawDataHandler(BiConsumer<Hand, HandMetadataAnalyser> rawDataHandler) {
         this.rawDataHandler = rawDataHandler;
     }
@@ -115,14 +132,6 @@ public final class HandGestureService extends EngineService {
             return;
         }
 
-        try {
-            ringTipY = dataQueue.take().getPoint(HandLandmark.RING_FINGER_TIP).getX();
-            ringMCPY = dataQueue.take().getPoint(HandLandmark.RING_FINGER_MCP).getX();
-            log.info(String.valueOf(dataQueue.take().getPoint(HandLandmark.RING_FINGER_TIP).getX()));
-        } catch (InterruptedException e)
-        {
-            log.warning("Could not take data");
-        }
         noHandCounter = 0;
 
         try {
@@ -136,7 +145,14 @@ public final class HandGestureService extends EngineService {
 
             rawDataHandler.accept(item, analyser);
 
-            ringFingerDown = GeometricGestureEvaluator.isFingerDown(item, HandLandmark.RING_FINGER_TIP);
+            currentOrientation.set(GeometricGestureEvaluator.getOrientation(item));
+
+            ringTipY = item.getPoint(HandLandmark.RING_FINGER_TIP).getY();
+            ringMCPY = item.getPoint(HandLandmark.RING_FINGER_MCP).getY();
+
+            indexFingerDown.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.INDEX_FINGER_TIP));
+
+            thumbCurled.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.THUMB_TIP));
 
         } catch (InterruptedException e) {
             log.warning("Cannot take item from queue", e);

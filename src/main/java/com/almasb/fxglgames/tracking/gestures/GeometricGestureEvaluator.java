@@ -1,6 +1,8 @@
 package com.almasb.fxglgames.tracking.gestures;
 
+import com.almasb.fxgl.logging.Logger;
 import com.almasb.fxglgames.tracking.*;
+import javafx.geometry.Point3D;
 import javafx.util.Pair;
 
 import java.util.EnumMap;
@@ -15,6 +17,7 @@ import static com.almasb.fxglgames.tracking.HandLandmark.*;
  */
 public class GeometricGestureEvaluator implements GestureEvaluator {
 
+    private static final Logger log = Logger.get(GeometricGestureEvaluator.class);
     private EnumMap<HandGesture, BiFunction<Hand, HandMetadata, Double>> evaluators = new EnumMap<>(HandGesture.class);
 
     public GeometricGestureEvaluator() {
@@ -23,12 +26,150 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
         evaluators.put(THUMB_PINKY_PINCH, this::evalThumbPinkyPinch);
         evaluators.put(THUMB_RING_FINGER_PINCH, this::evalThumbRingPinch);
         evaluators.put(THUMB_MIDDLE_FINGER_PINCH, this::evalThumbMiddlePinch);
+        evaluators.put(THUMB_INDEX_MIDDLE_DOWN, this::evalMiddleIndexThumbDown);
+        evaluators.put(THUMBS_UP, this::evalThumbsUp);
     }
 
+    // Use Finger Tip Landmark to find if that finger is curled
     public static boolean isFingerDown(Hand hand, HandLandmark landmark)
     {
-        return hand.getPoint(landmark).getY() > hand.getPoint(RING_FINGER_MCP).getY();
+
+        switch (getOrientation(hand)) {
+            case LEFT -> {
+                switch(landmark)
+                {
+                    case THUMB_TIP -> {
+                        return hand.getPoint(landmark).getY() < hand.getPoint(THUMB_MCP).getY();
+                    }
+                    case INDEX_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getX() < hand.getPoint(INDEX_FINGER_PIP).getX();
+                    }
+                    case MIDDLE_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getX() < hand.getPoint(MIDDLE_FINGER_PIP).getX();
+                    }
+                    case RING_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getX() < hand.getPoint(RING_FINGER_PIP).getX();
+                    }
+                    case PINKY_TIP -> {
+                        return hand.getPoint(landmark).getX() < hand.getPoint(PINKY_PIP).getX();
+                    }
+                }
+            }
+            case RIGHT -> {
+                switch(landmark)
+                {
+                    case THUMB_TIP -> {
+                        return hand.getPoint(landmark).getY() > hand.getPoint(THUMB_MCP).getY();
+                    }
+                    case INDEX_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getX() > hand.getPoint(INDEX_FINGER_PIP).getX();
+                    }
+                    case MIDDLE_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getX() > hand.getPoint(MIDDLE_FINGER_PIP).getX();
+                    }
+                    case RING_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getX() > hand.getPoint(RING_FINGER_PIP).getX();
+                    }
+                    case PINKY_TIP -> {
+                        return hand.getPoint(landmark).getX() > hand.getPoint(PINKY_PIP).getX();
+                    }
+                }
+            }
+            case UP -> {
+                switch(landmark)
+                {
+                    case THUMB_TIP -> {
+                        return hand.getPoint(landmark).getX() < hand.getPoint(THUMB_MCP).getX();
+                    }
+                    case INDEX_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getY() > hand.getPoint(INDEX_FINGER_PIP).getY();
+                    }
+                    case MIDDLE_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getY() > hand.getPoint(MIDDLE_FINGER_PIP).getY();
+                    }
+                    case RING_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getY() > hand.getPoint(RING_FINGER_PIP).getY();
+                    }
+                    case PINKY_TIP -> {
+                        return hand.getPoint(landmark).getY() > hand.getPoint(PINKY_PIP).getY();
+                    }
+                }
+            }
+            case DOWN -> {
+                switch(landmark)
+                {
+                    case THUMB_TIP -> {
+                        return hand.getPoint(landmark).getX() > hand.getPoint(THUMB_MCP).getX();
+                    }
+                    case INDEX_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getY() < hand.getPoint(INDEX_FINGER_PIP).getY();
+                    }
+                    case MIDDLE_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getY() < hand.getPoint(MIDDLE_FINGER_PIP).getY();
+                    }
+                    case RING_FINGER_TIP -> {
+                        return hand.getPoint(landmark).getY() < hand.getPoint(RING_FINGER_PIP).getY();
+                    }
+                    case PINKY_TIP -> {
+                        return hand.getPoint(landmark).getY() < hand.getPoint(PINKY_PIP).getY();
+                    }
+                }
+            }
+        }
+        return false;
     }
+
+    // Not currently working
+    public static boolean getPalmFacingFowards(Hand hand)
+    {
+        return !(hand.getPoint(THUMB_TIP).midpoint(hand.getPoint(THUMB_CMC)).getX() < hand.getPoint(MIDDLE_FINGER_MCP).getX());
+    }
+
+    public static HandOrientation getOrientation(Hand hand)
+    {
+        // Commented out code is functional but only works on left-right or up-down
+
+//        if(hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(RING_FINGER_MCP)).getY() > hand.getPoint(WRIST).getY())
+//        {
+//            return HandOrientation.DOWN;
+//        }
+//        return HandOrientation.UP;
+
+//        if(hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(RING_FINGER_MCP)).getX() > hand.getPoint(WRIST).getX())
+//        {
+//            return HandOrientation.LEFT;
+//        }
+//        return HandOrientation.RIGHT;
+
+        boolean palmForwards = getPalmFacingFowards(hand);
+        // ISSUE: LEFT-RIGHT ONLY WORKS WITH PALM FACING FORWARDS
+        // Creates 4 Points at the Midpoints of a box around the palm.
+        // Highest point is used to determine current direction.
+        Point3D leftPoint = hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(WRIST));
+        Point3D rightPoint = hand.getPoint(PINKY_MCP).midpoint(hand.getPoint(WRIST));
+        Point3D upperPoint = hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(PINKY_MCP));
+        Point3D lowerPoint = hand.getPoint(WRIST);
+        if(leftPoint.getY() < rightPoint.getY() && leftPoint.getY() < upperPoint.getY() && leftPoint.getY() < lowerPoint.getY())
+        {
+//            if(palmForwards) {
+                return HandOrientation.RIGHT;
+//            } else {
+//                return HandOrientation.LEFT;
+//            }
+        } else if (rightPoint.getY() < upperPoint.getY() && rightPoint.getY() < lowerPoint.getY()) {
+//            if(palmForwards) {
+                return HandOrientation.LEFT;
+//            } else {
+//                return HandOrientation.RIGHT;
+//            }
+        } else if (upperPoint.getY() < lowerPoint.getY()) {
+            return HandOrientation.UP;
+        } else {
+            return HandOrientation.DOWN;
+        }
+    }
+
+
 
     @Override
     public GestureEvaluationResult evaluate(Hand hand, HandMetadataAnalyser analyser) {
@@ -62,5 +203,20 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
     private double evalThumbRingPinch(Hand hand, HandMetadata metadata) {
         // TODO: double range map
         return hand.getPoint(THUMB_TIP).distance(hand.getPoint(RING_FINGER_TIP)) < 0.05 ? 1.0 : 0.0;
+    }
+
+    private double evalMiddleIndexThumbDown(Hand hand, HandMetadata metadata) {
+        return (isFingerDown(hand, MIDDLE_FINGER_TIP) && isFingerDown(hand, INDEX_FINGER_TIP) && isFingerDown(hand, THUMB_TIP)) ? 1.0 : 0.0;
+    }
+
+    private double evalThumbsUp(Hand hand, HandMetadata metadata)
+    {
+        return(isFingerDown(hand, INDEX_FINGER_TIP)
+                && isFingerDown(hand, MIDDLE_FINGER_TIP)
+                && isFingerDown(hand, RING_FINGER_TIP)
+                && isFingerDown(hand, PINKY_TIP)
+                && !isFingerDown(hand, THUMB_TIP)
+                && getOrientation(hand) == HandOrientation.RIGHT
+        ) ? 1.0 : 0.0;
     }
 }
