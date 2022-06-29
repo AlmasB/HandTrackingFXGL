@@ -22,12 +22,13 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
 
     public GeometricGestureEvaluator() {
         // TODO: populate evaluators
-        evaluators.put(THUMB_INDEX_PINCH, this::evalThumbIndexPinch);
-        evaluators.put(THUMB_PINKY_PINCH, this::evalThumbPinkyPinch);
-        evaluators.put(THUMB_RING_FINGER_PINCH, this::evalThumbRingPinch);
-        evaluators.put(THUMB_MIDDLE_FINGER_PINCH, this::evalThumbMiddlePinch);
+        //evaluators.put(THUMB_INDEX_PINCH, this::evalThumbIndexPinch);
+        //evaluators.put(THUMB_PINKY_PINCH, this::evalThumbPinkyPinch);
+        //evaluators.put(THUMB_RING_FINGER_PINCH, this::evalThumbRingPinch);
+        //evaluators.put(THUMB_MIDDLE_FINGER_PINCH, this::evalThumbMiddlePinch);
         evaluators.put(THUMB_INDEX_MIDDLE_DOWN, this::evalMiddleIndexThumbDown);
         evaluators.put(THUMBS_UP, this::evalThumbsUp);
+        evaluators.put(PEACE, this::evalPeaceSign);
     }
 
     // Use Finger Tip Landmark to find if that finger is curled
@@ -185,28 +186,41 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
 
     // TODO: take into account z
     // TODO: allow setting thresholds
-    private double evalThumbIndexPinch(Hand hand, HandMetadata metadata) {
+    /*private double evalThumbIndexPinch(Hand hand, HandMetadata metadata) {
         // TODO: double range map
         return hand.getPoint(THUMB_TIP).distance(hand.getPoint(INDEX_FINGER_TIP)) < 0.05 ? 1.0 : 0.0;
-    }
+    }*/
 
-    private double evalThumbPinkyPinch(Hand hand, HandMetadata metadata) {
+    /*private double evalThumbPinkyPinch(Hand hand, HandMetadata metadata) {
         // TODO: double range map
         return hand.getPoint(THUMB_TIP).distance(hand.getPoint(PINKY_TIP)) < 0.05 ? 1.0 : 0.0;
-    }
+    }*/
 
-    private double evalThumbMiddlePinch(Hand hand, HandMetadata metadata) {
+    /*private double evalThumbMiddlePinch(Hand hand, HandMetadata metadata) {
         // TODO: double range map
         return hand.getPoint(THUMB_TIP).distance(hand.getPoint(MIDDLE_FINGER_TIP)) < 0.05 ? 1.0 : 0.0;
-    }
+    }*/
 
-    private double evalThumbRingPinch(Hand hand, HandMetadata metadata) {
+    /*private double evalThumbRingPinch(Hand hand, HandMetadata metadata) {
         // TODO: double range map
         return hand.getPoint(THUMB_TIP).distance(hand.getPoint(RING_FINGER_TIP)) < 0.05 ? 1.0 : 0.0;
-    }
+    }*/
 
     private double evalMiddleIndexThumbDown(Hand hand, HandMetadata metadata) {
-        return (isFingerDown(hand, MIDDLE_FINGER_TIP) && isFingerDown(hand, INDEX_FINGER_TIP) && isFingerDown(hand, THUMB_TIP)) ? 1.0 : 0.0;
+        return (isFingerDown(hand, MIDDLE_FINGER_TIP)
+                && isFingerDown(hand, INDEX_FINGER_TIP)
+                && isFingerDown(hand, THUMB_TIP)
+        ) ? 1.0 : 0.0;
+    }
+
+    private double evalPeaceSign(Hand hand, HandMetadata metadata)
+    {
+        return (isFingerDown(hand, THUMB_TIP)
+                && isFingerDown(hand, RING_FINGER_TIP)
+                && isFingerDown(hand, PINKY_TIP)
+                && !isFingerDown(hand, INDEX_FINGER_TIP)
+                && !isFingerDown(hand, MIDDLE_FINGER_TIP)
+        ) ? 1.0 : 0.0;
     }
 
     private double evalThumbsUp(Hand hand, HandMetadata metadata)
