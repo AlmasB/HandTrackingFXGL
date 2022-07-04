@@ -9,9 +9,7 @@ import com.almasb.fxgl.physics.box2d.dynamics.BodyType;
 import com.almasb.fxgl.physics.box2d.dynamics.FixtureDef;
 import com.almasb.fxglgames.socket.PythonSocketService;
 import com.almasb.fxglgames.tracking.Hand;
-import com.almasb.fxglgames.tracking.HandGesture;
 import com.almasb.fxglgames.tracking.HandGestureService;
-import com.almasb.fxglgames.tracking.gestures.GeometricGestureEvaluator;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
@@ -129,6 +127,12 @@ public class HandTrackingApp extends GameApplication {
                         .concat("\n")
                         .concat("Current gesture: ")
                         .concat(getService(HandGestureService.class).currentGestureProperty())
+                        .concat("\n")
+                        .concat("Is ring finger curled: ")
+                        .concat(getService(HandGestureService.class).getRingFingerDown())
+                        .concat("\n")
+                        .concat("Is pinky curled: ")
+                        .concat(getService(HandGestureService.class).getPinkyDown())
         );
 
         addUINode(text, 50, 50);

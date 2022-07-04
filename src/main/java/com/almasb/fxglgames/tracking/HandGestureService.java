@@ -38,7 +38,9 @@ public final class HandGestureService extends EngineService {
 
     private ObjectProperty<HandOrientation> currentOrientation = new SimpleObjectProperty<>(HandOrientation.UP);
 
-    public BooleanProperty indexFingerDown = new SimpleBooleanProperty(false);
+    public BooleanProperty ringFingerDown = new SimpleBooleanProperty(false);
+
+    public BooleanProperty pinkyDown = new SimpleBooleanProperty(false);
 
     public BooleanProperty thumbCurled = new SimpleBooleanProperty(false);
 
@@ -101,9 +103,9 @@ public final class HandGestureService extends EngineService {
 
     public BooleanProperty getThumbCurled() { return thumbCurled; }
 
-    public BooleanProperty indexFingerDownProperty() {
-        return indexFingerDown;
-    }
+    public BooleanProperty getRingFingerDown() { return ringFingerDown; }
+
+    public BooleanProperty getPinkyDown() { return pinkyDown; }
 
     public HandOrientation getCurrentOrientation() {return currentOrientation.get();}
 
@@ -150,7 +152,9 @@ public final class HandGestureService extends EngineService {
             ringTipY = item.getPoint(HandLandmark.RING_FINGER_TIP).getY();
             ringMCPY = item.getPoint(HandLandmark.RING_FINGER_MCP).getY();
 
-            indexFingerDown.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.INDEX_FINGER_TIP));
+            ringFingerDown.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.RING_FINGER_TIP));
+
+            pinkyDown.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.PINKY_TIP));
 
             thumbCurled.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.THUMB_TIP));
 
