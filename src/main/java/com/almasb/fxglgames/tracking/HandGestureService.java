@@ -42,6 +42,8 @@ public final class HandGestureService extends EngineService {
 
     public BooleanProperty pinkyDown = new SimpleBooleanProperty(false);
 
+    public BooleanProperty palmForwards = new SimpleBooleanProperty(false);
+
     public BooleanProperty thumbCurled = new SimpleBooleanProperty(false);
 
     private BlockingQueue<Hand> dataQueue = new ArrayBlockingQueue<>(1000);
@@ -113,6 +115,8 @@ public final class HandGestureService extends EngineService {
         return currentOrientation;
     }
 
+    public BooleanProperty palmForwardsProperty() { return palmForwards; }
+
     public void setRawDataHandler(BiConsumer<Hand, HandMetadataAnalyser> rawDataHandler) {
         this.rawDataHandler = rawDataHandler;
     }
@@ -157,6 +161,8 @@ public final class HandGestureService extends EngineService {
             pinkyDown.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.PINKY_TIP));
 
             thumbCurled.set(GeometricGestureEvaluator.isFingerDown(item, HandLandmark.THUMB_TIP));
+
+            palmForwards.set(GeometricGestureEvaluator.getPalmFacingFowards(item));
 
         } catch (InterruptedException e) {
             log.warning("Cannot take item from queue", e);

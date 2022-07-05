@@ -133,6 +133,12 @@ public class HandTrackingApp extends GameApplication {
                         .concat("\n")
                         .concat("Is pinky curled: ")
                         .concat(getService(HandGestureService.class).getPinkyDown())
+                        .concat("\n")
+                        .concat("Palm Facing Forwards: ")
+                        .concat(getService(HandGestureService.class).palmForwardsProperty())
+                        .concat("\n")
+                        .concat("Current Orientation: ")
+                        .concat(getService(HandGestureService.class).currentOrientationProperty())
         );
 
         addUINode(text, 50, 50);

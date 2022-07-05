@@ -123,24 +123,29 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
     // Not currently working
     public static boolean getPalmFacingFowards(Hand hand)
     {
-        return !(hand.getPoint(THUMB_TIP).midpoint(hand.getPoint(THUMB_CMC)).getX() < hand.getPoint(MIDDLE_FINGER_MCP).getX());
+        // Find raw direction (regardless of hands rotation)
+        if(hand.getPoint(INDEX_FINGER_MCP).getX() > hand.getPoint(PINKY_MCP).getX())
+        {
+            // Check if hand facing down or up and use to deduce if facing forward or back.
+            if(hand.getPoint(WRIST).getY() < hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(PINKY_MCP)).getY())
+            {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            // Check if hand facing down or up and use to deduce if facing forward or back.
+            if(hand.getPoint(WRIST).getY() < hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(PINKY_MCP)).getY())
+            {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     public static HandOrientation getOrientation(Hand hand)
     {
-        // Commented out code is functional but only works on left-right or up-down
-
-//        if(hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(RING_FINGER_MCP)).getY() > hand.getPoint(WRIST).getY())
-//        {
-//            return HandOrientation.DOWN;
-//        }
-//        return HandOrientation.UP;
-
-//        if(hand.getPoint(INDEX_FINGER_MCP).midpoint(hand.getPoint(RING_FINGER_MCP)).getX() > hand.getPoint(WRIST).getX())
-//        {
-//            return HandOrientation.LEFT;
-//        }
-//        return HandOrientation.RIGHT;
 
         boolean palmForwards = getPalmFacingFowards(hand);
         // ISSUE: LEFT-RIGHT ONLY WORKS WITH PALM FACING FORWARDS
@@ -152,17 +157,17 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
         Point3D lowerPoint = hand.getPoint(WRIST);
         if(leftPoint.getY() < rightPoint.getY() && leftPoint.getY() < upperPoint.getY() && leftPoint.getY() < lowerPoint.getY())
         {
-//            if(palmForwards) {
+            if(palmForwards) {
                 return HandOrientation.RIGHT;
-//            } else {
-//                return HandOrientation.LEFT;
-//            }
-        } else if (rightPoint.getY() < upperPoint.getY() && rightPoint.getY() < lowerPoint.getY()) {
-//            if(palmForwards) {
+            } else {
                 return HandOrientation.LEFT;
-//            } else {
-//                return HandOrientation.RIGHT;
-//            }
+            }
+        } else if (rightPoint.getY() < upperPoint.getY() && rightPoint.getY() < lowerPoint.getY()) {
+            if(palmForwards) {
+                return HandOrientation.LEFT;
+            } else {
+                return HandOrientation.RIGHT;
+            }
         } else if (upperPoint.getY() < lowerPoint.getY()) {
             return HandOrientation.UP;
         } else {
