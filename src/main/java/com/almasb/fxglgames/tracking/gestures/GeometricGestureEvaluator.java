@@ -225,6 +225,7 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
                 && isFingerDown(hand, PINKY_TIP)
                 && !isFingerDown(hand, INDEX_FINGER_TIP)
                 && !isFingerDown(hand, MIDDLE_FINGER_TIP)
+                && hand.getPoint(INDEX_FINGER_TIP).distance(hand.getPoint(MIDDLE_FINGER_TIP)) > 0.07
         ) ? 1.0 : 0.0;
     }
 
