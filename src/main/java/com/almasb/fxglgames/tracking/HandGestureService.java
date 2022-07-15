@@ -2,12 +2,18 @@ package com.almasb.fxglgames.tracking;
 
 import com.almasb.fxgl.core.EngineService;
 import com.almasb.fxgl.dsl.FXGL;
+import com.almasb.fxgl.input.KeyTrigger;
+import com.almasb.fxgl.input.Trigger;
+import com.almasb.fxgl.input.TriggerListener;
 import com.almasb.fxgl.logging.Logger;
 import com.almasb.fxglgames.tracking.gestures.GeometricGestureEvaluator;
+import com.almasb.fxglgames.tracking.gestures.SerializationTestApp;
 import com.almasb.fxglgames.tracking.impl.JSHandTrackingDriver;
 import com.almasb.fxglgames.tracking.impl.SimpleHandMetadataAnalyser;
 import javafx.beans.property.*;
 import javafx.event.EventHandler;
+import javafx.geometry.Point3D;
+import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
 
 import java.nio.file.Paths;
@@ -18,7 +24,10 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.BiConsumer;
+import java.lang.Math;
 
+import static com.almasb.fxgl.dsl.FXGL.*;
+import static com.almasb.fxgl.dsl.FXGLForKtKt.getInput;
 import static com.almasb.fxglgames.tracking.HandGesture.NO_HAND;
 import static com.almasb.fxglgames.tracking.HandGesture.UNKNOWN;
 
@@ -75,6 +84,7 @@ public final class HandGestureService extends EngineService {
             FXGL.getFXApp().getHostServices().showDocument(Paths.get("hand-tracking.html").toUri().toString());
         }, Duration.seconds(1));
     }
+
 
     public double getMinDistanceThreshold() {
         return minDistanceThreshold;
@@ -164,6 +174,18 @@ public final class HandGestureService extends EngineService {
 
             palmForwards.set(GeometricGestureEvaluator.getPalmFacingFowards(item));
 
+            getInput().addTriggerListener(new TriggerListener() {
+                @Override
+                protected void onActionBegin(Trigger trigger) {
+                    var keyTrigger = (KeyTrigger) trigger;
+                    if (keyTrigger.getKey() == KeyCode.S) {
+                        var key = keyTrigger.getKey();
+                        SerializationTestApp.setSavedHand(item);
+                        SerializationTestApp.main(new String[]{""});
+                    };
+                }
+            });
+
         } catch (InterruptedException e) {
             log.warning("Cannot take item from queue", e);
         }
@@ -173,19 +195,65 @@ public final class HandGestureService extends EngineService {
 
     }
 
+    private double[] Vector3d(double x, double y, double z){
+        double[] vector = {x, y, z};
+        return vector;
+    }
+
     // this is the (static) gesture mapping algorithm, which is currently very basic and requires more thought
     private void evaluateGesture(Hand hand, HandMetadataAnalyser analyser) {
         var result = gestureEvaluator.evaluate(hand, analyser);
 
         currentGesture.set(
-            result.output()
-                    .entrySet()
-                    .stream()
-                    .max(Comparator.comparingDouble(Map.Entry::getValue))
-                    // TODO: threshold ...
-                    .map(entry -> entry.getValue() > 0.02 ? entry.getKey() : UNKNOWN)
-                    .get()
+                result.output()
+                        .entrySet()
+                        .stream()
+                        .max(Comparator.comparingDouble(Map.Entry::getValue))
+                        // TODO: threshold ...
+                        .map(entry -> entry.getValue() > 0.02 ? entry.getKey() : UNKNOWN)
+                        .get()
         );
+
+        if (SerializationTestApp.getSavedHand() != null) {
+            try {
+                /*
+                var storedLocIndexTipX = SerializationTestApp.getSavedHand().getPoint(HandLandmark.INDEX_FINGER_TIP).getX();
+                var locIndexTipX = hand.getPoint(HandLandmark.INDEX_FINGER_TIP).getX();
+                var distance = Math.abs(locIndexTipX - storedLocIndexTipX);
+
+
+                System.out.println(SerializationTestApp.getSavedHand().getPoint(HandLandmark.INDEX_FINGER_TIP).getX() - SerializationTestApp.getSavedHand().getPoint(HandLandmark.WRIST).getX());
+                System.out.println(hand.getPoint(HandLandmark.INDEX_FINGER_TIP).getX() - hand.getPoint(HandLandmark.WRIST).getX());
+                System.out.println(Math.abs((locIndexTipX - hand.getPoint(HandLandmark.WRIST).getX())-(storedLocIndexTipX - SerializationTestApp.getSavedHand().getPoint(HandLandmark.WRIST).getX())));
+                 */
+
+
+                var storedLocIndexTip = SerializationTestApp.getSavedHand().getPoint(HandLandmark.INDEX_FINGER_TIP).subtract(SerializationTestApp.getSavedHand().getPoint(HandLandmark.WRIST));
+                var locIndexTip = hand.getPoint(HandLandmark.INDEX_FINGER_TIP).subtract(hand.getPoint(HandLandmark.WRIST));
+                var distance = locIndexTip.distance(storedLocIndexTip);
+
+                System.out.println("storedLocIndexTipX: " + storedLocIndexTip);
+                System.out.println("LocIndexTipX: " + locIndexTip);
+                System.out.println("Location of wrist: " + hand.getPoint(HandLandmark.WRIST));
+                System.out.println("Location of saved wrist: " + SerializationTestApp.getSavedHand().getPoint(HandLandmark.WRIST));
+                System.out.println("distance: " + distance);
+                System.out.println("Gesture: " + getService(HandGestureService.class).currentGestureProperty().getValue());
+
+                if (0.0 < distance && distance < 0.03) {
+                    System.out.println("Exterminate");
+                    SerializationTestApp.getSavedHand().id();
+                }
+                System.out.println("--------------------------------------");
+
+                var savedHand = SerializationTestApp.getCoords();
+
+                //System.out.println("HandGestureService savedHand: " + savedHand);
+
+
+            } catch (Exception e) {
+                System.out.println("Error HandGestureService: " + e);
+            }
+        }
     }
 
     // this is the (dynamic) gesture movement mapping algorithm, which is currently very basic and requires more thought
