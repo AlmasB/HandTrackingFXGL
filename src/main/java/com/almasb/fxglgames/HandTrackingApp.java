@@ -10,11 +10,14 @@ import com.almasb.fxgl.physics.box2d.dynamics.FixtureDef;
 import com.almasb.fxglgames.socket.PythonSocketService;
 import com.almasb.fxglgames.tracking.Hand;
 import com.almasb.fxglgames.tracking.HandGestureService;
+import com.almasb.fxglgames.tracking.gestures.GeometricGestureEvaluator;
+import com.almasb.fxglgames.tracking.gestures.SerializationTestApp;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
@@ -116,6 +119,7 @@ public class HandTrackingApp extends GameApplication {
 //                current.ifPresent(this::moveRight);
 //            }
 //        });
+
     }
 
     @Override
@@ -252,6 +256,7 @@ public class HandTrackingApp extends GameApplication {
 
         oldX = pointer.getTranslateX();
         oldY = pointer.getTranslateY();
+
     }
 
     public static void main(String[] args) {
