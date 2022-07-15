@@ -19,5 +19,7 @@ public enum HandGesture {
     THUMBS_UP,
 
     OK,
-    PEACE
+    PEACE,
+
+    FINGERGUN
 }
