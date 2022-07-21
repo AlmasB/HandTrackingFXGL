@@ -29,6 +29,9 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
         evaluators.put(THUMB_INDEX_MIDDLE_DOWN, this::evalMiddleIndexThumbDown);
         evaluators.put(THUMBS_UP, this::evalThumbsUp);
         evaluators.put(PEACE, this::evalPeaceSign);
+        evaluators.put(FINGERGUN, this::evalFingerGun);
+        evaluators.put(OK, this::evalOKSign);
+        evaluators.put(THUMBS_DOWN, this::evalThumbsDown);
     }
 
     // Use Finger Tip Landmark to find if that finger is curled
@@ -215,6 +218,8 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
         return (isFingerDown(hand, MIDDLE_FINGER_TIP)
                 && isFingerDown(hand, INDEX_FINGER_TIP)
                 && isFingerDown(hand, THUMB_TIP)
+                && !isFingerDown(hand, RING_FINGER_TIP)
+                && !isFingerDown(hand, PINKY_TIP)
         ) ? 1.0 : 0.0;
     }
 
@@ -236,7 +241,40 @@ public class GeometricGestureEvaluator implements GestureEvaluator {
                 && isFingerDown(hand, RING_FINGER_TIP)
                 && isFingerDown(hand, PINKY_TIP)
                 && !isFingerDown(hand, THUMB_TIP)
-                && getOrientation(hand) == HandOrientation.RIGHT
+                && hand.getPoint(THUMB_TIP).getY() < hand.getPoint(WRIST).midpoint(hand.getPoint(MIDDLE_FINGER_TIP)).getY()
+        ) ? 1.0 : 0.0;
+    }
+
+    private double evalThumbsDown(Hand hand, HandMetadata metadata)
+    {
+        return(isFingerDown(hand, INDEX_FINGER_TIP)
+                && isFingerDown(hand, MIDDLE_FINGER_TIP)
+                && isFingerDown(hand, RING_FINGER_TIP)
+                && isFingerDown(hand, PINKY_TIP)
+                && !isFingerDown(hand, THUMB_TIP)
+                && hand.getPoint(THUMB_TIP).getY() > hand.getPoint(WRIST).midpoint(hand.getPoint(MIDDLE_FINGER_TIP)).getY()
+        ) ? 1.0 : 0.0;
+    }
+
+    private double evalFingerGun(Hand hand, HandMetadata metadata)
+    {
+        return(!isFingerDown(hand, INDEX_FINGER_TIP)
+                && isFingerDown(hand, MIDDLE_FINGER_TIP)
+                && isFingerDown(hand, RING_FINGER_TIP)
+                && isFingerDown(hand, PINKY_TIP)
+                && !isFingerDown(hand, THUMB_TIP)
+                && getOrientation(hand) != HandOrientation.DOWN
+                && hand.getPoint(WRIST).midpoint(hand.getPoint(PINKY_TIP)).getY() > hand.getPoint(WRIST).midpoint(hand.getPoint(INDEX_FINGER_TIP)).getY()
+        ) ? 1.0 : 0.0;
+    }
+
+    private double evalOKSign(Hand hand, HandMetadata metadata)
+    {
+        return (!isFingerDown(hand, MIDDLE_FINGER_TIP)
+                && !isFingerDown(hand, RING_FINGER_TIP)
+                && !isFingerDown(hand, PINKY_TIP)
+                && hand.getPoint(THUMB_TIP).distance(hand.getPoint(INDEX_FINGER_TIP)) < 0.07
+                && getPalmFacingFowards(hand)
         ) ? 1.0 : 0.0;
     }
 }

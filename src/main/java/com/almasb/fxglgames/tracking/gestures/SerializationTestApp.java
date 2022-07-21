@@ -65,6 +65,7 @@ public class SerializationTestApp {
             mapper.registerModule(module);
 
             mapper.writeValue(Paths.get("hand.json").toFile(), hand);
+            mapper.writeValue
 
             coords = mapper.readValue(Paths.get("hand.json").toFile(), Hand.class);
 
