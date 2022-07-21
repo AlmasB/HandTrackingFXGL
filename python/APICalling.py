@@ -20,9 +20,7 @@ def set_status(ip, port, colour):
 
 
 def send_req(ip, port, input):
-    if (input == "THUMB_INDEX_PINCH"):
+    if (input == "PEACE"):
         print(set_status(ip, port, "green"))
-    elif (input == "THUMB_MIDDLE_FINGER_PINCH"):
+    elif (input == "OK"):
         print(set_status(ip, port, "red"))
-
-
