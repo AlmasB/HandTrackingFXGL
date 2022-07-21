@@ -57,20 +57,20 @@ public class SerializationTestApp {
         var hand = savedHand
         ;
 
-//        try {
-//            var module = new SimpleModule();
-//            module.addDeserializer(Point3D.class, new Point3DDeserializer());
-//
-//            var mapper = new ObjectMapper();
-//            mapper.registerModule(module);
-//
-//            mapper.writeValue(Paths.get("hand.json").toFile(), hand);
-//            mapper.writeValue
-//
-//            coords = mapper.readValue(Paths.get("hand.json").toFile(), Hand.class);
-//
-//        } catch (Exception e) {
-//            System.out.println("Error SerializationTestApp: " + e);
-//        }
+        try {
+            var module = new SimpleModule();
+            module.addDeserializer(Point3D.class, new Point3DDeserializer());
+
+            var mapper = new ObjectMapper();
+            mapper.registerModule(module);
+
+            mapper.writeValue(Paths.get("hand.json").toFile(), hand);
+            mapper.writeValue
+
+            coords = mapper.readValue(Paths.get("hand.json").toFile(), Hand.class);
+
+        } catch (Exception e) {
+            System.out.println("Error SerializationTestApp: " + e);
+        }
     }
 }
