@@ -9,13 +9,15 @@ import com.almasb.fxgl.physics.box2d.dynamics.BodyType;
 import com.almasb.fxgl.physics.box2d.dynamics.FixtureDef;
 import com.almasb.fxglgames.socket.PythonSocketService;
 import com.almasb.fxglgames.tracking.Hand;
-import com.almasb.fxglgames.tracking.HandGesture;
 import com.almasb.fxglgames.tracking.HandGestureService;
+import com.almasb.fxglgames.tracking.gestures.GeometricGestureEvaluator;
+import com.almasb.fxglgames.tracking.gestures.SerializationTestApp;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
@@ -46,6 +48,11 @@ public class HandTrackingApp extends GameApplication {
 
     private double oldX = -1;
     private double oldY = -1;
+
+    private Text ringMCP;
+    private Text ringTip;
+
+    private Text thumbCurledText;
 
     @Override
     protected void initSettings(GameSettings settings) {
@@ -82,6 +89,7 @@ public class HandTrackingApp extends GameApplication {
 
         addUINode(canvas);
 
+
         getService(HandGestureService.class).setRawDataHandler((hand, analyser) -> {
             var dist = hand.points().get(4).distance(hand.points().get(8));
 
@@ -111,6 +119,7 @@ public class HandTrackingApp extends GameApplication {
 //                current.ifPresent(this::moveRight);
 //            }
 //        });
+
     }
 
     @Override
@@ -122,9 +131,48 @@ public class HandTrackingApp extends GameApplication {
                         .concat("\n")
                         .concat("Current gesture: ")
                         .concat(getService(HandGestureService.class).currentGestureProperty())
+                        .concat("\n")
+                        .concat("Is ring finger curled: ")
+                        .concat(getService(HandGestureService.class).getRingFingerDown())
+                        .concat("\n")
+                        .concat("Is pinky curled: ")
+                        .concat(getService(HandGestureService.class).getPinkyDown())
+                        .concat("\n")
+                        .concat("Palm Facing Forwards: ")
+                        .concat(getService(HandGestureService.class).palmForwardsProperty())
+                        .concat("\n")
+                        .concat("Current Orientation: ")
+                        .concat(getService(HandGestureService.class).currentOrientationProperty())
         );
 
         addUINode(text, 50, 50);
+
+//        var indexText = getUIFactoryService().newText("", Color.WHITE, 22.0);
+//        text.textProperty().bind(
+//                new SimpleStringProperty("Index Finger is Down: ")
+//                        .concat(getService(HandGestureService.class).indexFingerDownProperty())
+//
+//        );
+
+//        var orientationText = getUIFactoryService().newText("", Color.BLUE, 22.0);
+//        orientationText.textProperty().bind(
+//                new SimpleStringProperty("Hand Orientation: ")
+//                        .concat(getService(HandGestureService.class).currentOrientationProperty())
+//        );
+//
+//        addUINode(orientationText, 150, 150);
+//
+//        ringMCP = new Text();
+//        addUINode(ringMCP, 500, 800);
+//        ringTip = new Text();
+//        addUINode( ringTip, 500, 500);
+//
+//        addUINode(indexText, 500, 300);
+
+        thumbCurledText = new Text();
+        addUINode(thumbCurledText, 500, 500);
+
+
     }
 
     private void drawHand(Hand hand) {
@@ -146,6 +194,10 @@ public class HandTrackingApp extends GameApplication {
         drawLine(hand.points(), 9, 13);
         drawLine(hand.points(), 13, 17);
         drawLine(hand.points(), 17, 0);
+
+//        ringMCP.setText("Ring MCP: " + String.valueOf(getService(HandGestureService.class).ringMCPY));
+//        ringTip.setText("Ring Tip: " + String.valueOf(getService(HandGestureService.class).ringTipY));
+        thumbCurledText.setText("Thumb Curled: " + String.valueOf(getService(HandGestureService.class).getThumbCurled()));
     }
 
     private void drawLine(List<Point3D> points, int index0, int index1) {
@@ -204,6 +256,7 @@ public class HandTrackingApp extends GameApplication {
 
         oldX = pointer.getTranslateX();
         oldY = pointer.getTranslateY();
+
     }
 
     public static void main(String[] args) {

@@ -15,6 +15,12 @@ public enum HandGesture {
     THUMB_RING_FINGER_PINCH,
     THUMB_PINKY_PINCH,
 
+    THUMB_INDEX_MIDDLE_DOWN,
+    THUMBS_UP,
+    THUMBS_DOWN,
+
     OK,
-    PEACE
+    PEACE,
+
+    FINGERGUN
 }
